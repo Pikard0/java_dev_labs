@@ -4,6 +4,8 @@ import com.java.carparts.domain.dto.OrderResponse;
 import com.java.carparts.domain.dto.PlaceOrderRequest;
 import com.java.carparts.domain.enums.OrderStatus;
 import com.java.carparts.security.CurrentUser;
+import com.java.carparts.validation.AdminEndpoint;
+import com.java.carparts.web.CurrentUserParam;
 import com.java.carparts.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,31 +25,30 @@ public class OrderController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponse placeOrder(@Valid @RequestBody PlaceOrderRequest request,
-                                     @AuthenticationPrincipal CurrentUser user) {
+                                     @CurrentUserParam CurrentUser user) {
         return orderService.placeOrder(user.username(), request);
     }
 
     @GetMapping("/mine")
-    public List<OrderResponse> myOrders(@AuthenticationPrincipal CurrentUser user) {
+    public List<OrderResponse> myOrders(@CurrentUserParam CurrentUser user) {
         return orderService.listMyOrders(user.username());
     }
 
     @GetMapping("/{id}")
-    public OrderResponse getOrder(@PathVariable Integer id, @AuthenticationPrincipal CurrentUser user) {
+    public OrderResponse getOrder(@PathVariable Integer id, @CurrentUserParam CurrentUser user) {
         return orderService.getOrder(id, user.username(), user.hasRole("ADMIN"));
     }
 
     @GetMapping
-    public List<OrderResponse> allOrders(@AuthenticationPrincipal CurrentUser user) {
-        if (!user.hasRole("ADMIN")) throw new org.springframework.security.access.AccessDeniedException("Admin only");
+    @AdminEndpoint
+    public List<OrderResponse> allOrders(@CurrentUserParam CurrentUser user) {
         return orderService.listAllOrders();
     }
 
     @PatchMapping("/{id}/status")
-    
+    @AdminEndpoint
     public OrderResponse updateStatus(@PathVariable Integer id, @RequestParam OrderStatus status,
-                                      @AuthenticationPrincipal CurrentUser user) {
-        if (!user.hasRole("ADMIN")) throw new org.springframework.security.access.AccessDeniedException("Admin only");
+                                      @CurrentUserParam CurrentUser user) {
         return orderService.updateStatus(id, status);
     }
 }
