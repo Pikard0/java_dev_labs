@@ -10,13 +10,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import com.java.carparts.validation.ValidSkuCategory;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ValidSkuCategory
 public class ProductUpdateRequest {
 
     @NotBlank

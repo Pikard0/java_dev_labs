@@ -4,7 +4,6 @@ import com.java.carparts.domain.dto.ProductCreateRequest;
 import com.java.carparts.domain.dto.ProductResponse;
 import com.java.carparts.domain.dto.ProductUpdateRequest;
 import com.java.carparts.service.ProductService;
-import com.java.carparts.validation.AdminEndpoint;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,20 +30,20 @@ public class ProductController {
     }
 
     @PostMapping
-    @AdminEndpoint
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductResponse create(@Valid @RequestBody ProductCreateRequest request) {
         return productService.create(request);
     }
 
     @PutMapping("/{id}")
-    @AdminEndpoint
+    @PreAuthorize("hasRole('ADMIN')")
     public ProductResponse update(@PathVariable Integer id, @Valid @RequestBody ProductUpdateRequest request) {
         return productService.update(id, request);
     }
 
     @DeleteMapping("/{id}")
-    @AdminEndpoint
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Integer id) {
         productService.delete(id);
