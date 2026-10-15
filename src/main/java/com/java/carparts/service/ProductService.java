@@ -3,6 +3,7 @@ package com.java.carparts.service;
 import com.java.carparts.domain.dto.ProductCreateRequest;
 import com.java.carparts.domain.dto.ProductResponse;
 import com.java.carparts.domain.dto.ProductUpdateRequest;
+import com.java.carparts.aop.MeasureExecutionTime;
 import com.java.carparts.aop.TrackExecution;
 import com.java.carparts.domain.mapper.ProductMapper;
 import com.java.carparts.domain.model.Product;
@@ -22,6 +23,7 @@ public class ProductService {
     private final ProductMapper productMapper;
 
     @Transactional(readOnly = true)
+    @MeasureExecutionTime
     public List<ProductResponse> listAll() {
         return productRepository.findAll().stream()
                 .map(productMapper::toResponse)

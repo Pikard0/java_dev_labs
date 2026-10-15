@@ -3,6 +3,7 @@ package com.java.carparts.service;
 import com.java.carparts.domain.dto.OrderItemRequest;
 import com.java.carparts.domain.dto.OrderResponse;
 import com.java.carparts.domain.dto.PlaceOrderRequest;
+import com.java.carparts.aop.AuditAction;
 import com.java.carparts.domain.enums.OrderStatus;
 import com.java.carparts.domain.mapper.OrderMapper;
 import com.java.carparts.domain.model.Order;
@@ -93,6 +94,7 @@ public class OrderService {
     }
 
     @Transactional
+    @AuditAction("Order status changed")
     public OrderResponse updateStatus(Integer orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
