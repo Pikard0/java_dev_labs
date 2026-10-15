@@ -1,6 +1,10 @@
 server:
   port: 8081
 
+logging:
+  file:
+    name: logs/car-parts-store.log
+
 spring:
   application:
     name: taxi-order-service
