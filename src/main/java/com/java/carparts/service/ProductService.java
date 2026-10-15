@@ -3,6 +3,7 @@ package com.java.carparts.service;
 import com.java.carparts.domain.dto.ProductCreateRequest;
 import com.java.carparts.domain.dto.ProductResponse;
 import com.java.carparts.domain.dto.ProductUpdateRequest;
+import com.java.carparts.aop.TrackExecution;
 import com.java.carparts.domain.mapper.ProductMapper;
 import com.java.carparts.domain.model.Product;
 import com.java.carparts.exception.ProductNotFoundException;
@@ -33,6 +34,7 @@ public class ProductService {
     }
 
     @Transactional
+    @TrackExecution
     public ProductResponse create(ProductCreateRequest request) {
         Product product = productMapper.toEntity(request);
         return productMapper.toResponse(productRepository.save(product));
