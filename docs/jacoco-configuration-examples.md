@@ -63,8 +63,8 @@ numbers.
     <version>${jacoco.version}</version>
     <configuration>
         <excludes>
-            <exclude>com/java/carparts/configuration/**</exclude>
-            <exclude>com/java/carparts/CarPartsStoreApplication.class</exclude>
+            <exclude>com/java/toystore/configuration/**</exclude>
+            <exclude>com/java/toystore/ToyStoreApplication.class</exclude>
             <exclude>**/*Application.class</exclude>
         </excludes>
     </configuration>
@@ -138,7 +138,7 @@ Instead of one project-wide number, require a higher bar specifically on
             <rule>
                 <element>PACKAGE</element>
                 <includes>
-                    <include>com.java.carparts.service</include>
+                    <include>com.java.toystore.service</include>
                 </includes>
                 <limits>
                     <limit>
@@ -151,7 +151,7 @@ Instead of one project-wide number, require a higher bar specifically on
             <rule>
                 <element>PACKAGE</element>
                 <includes>
-                    <include>com.java.carparts.controller</include>
+                    <include>com.java.toystore.controller</include>
                 </includes>
                 <limits>
                     <limit>
@@ -219,7 +219,7 @@ to `check`.
     <version>${jacoco.version}</version>
     <configuration>
         <excludes>
-            <exclude>com/java/carparts/domain/dto/**</exclude>
+            <exclude>com/java/toystore/domain/dto/**</exclude>
             <!-- DTOs are plain data holders - excluding them from the
                  gate avoids "coverage" that's really just Lombok
                  getter/setter noise from other tests constructing them -->

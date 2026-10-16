@@ -2,14 +2,14 @@ services:
   mariadb:
     image: mariadb:11.4
     environment:
-      MARIADB_DATABASE: taxi_order_service
+      MARIADB_DATABASE: toy_store
       MARIADB_USER: appuser
       MARIADB_PASSWORD: appuser
       MARIADB_ROOT_PASSWORD: root
     ports:
       - "3307:3306"
     volumes:
-      - mariadb-data:/var/lib/mysql
+      - toy-store-data:/var/lib/mysql
 
   keycloak:
     image: quay.io/keycloak/keycloak:25.0
@@ -23,4 +23,4 @@ services:
       - ./keycloak/course-realm.json:/opt/keycloak/data/import/course-realm.json:ro
 
 volumes:
-  mariadb-data:
+  toy-store-data:

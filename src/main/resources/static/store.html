@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Автозапчастини — інтернет-магазин</title>
+<title>Магазин іграшок</title>
 <style>
   body { font-family: monospace; max-width: 900px; margin: 40px auto; padding: 0 16px; }
   button { padding: 6px 10px; cursor: pointer; margin: 2px; }
@@ -18,14 +18,14 @@
 </head>
 <body>
 
-<h1>Магазин автозапчастин</h1>
+<h1>Магазин іграшок</h1>
 <p class="status" id="loginStatus">Checking login status...</p>
 <button onclick="login()">Увійти</button>
 <button onclick="logout()">Вийти</button>
 
-<h2>1. Каталог автозапчастин</h2>
-<button onclick="loadProducts()">Завантажити товари</button>
-<table id="productsTable">
+<h2>1. Каталог іграшок</h2>
+<button onclick="loadToys()">Завантажити товари</button>
+<table id="toysTable">
   <thead><tr><th>ID</th><th>Назва товару</th><th>Ціна</th><th>В наявності</th><th>Кількість</th><th></th></tr></thead>
   <tbody></tbody>
 </table>
@@ -47,15 +47,15 @@
 
 <section id="adminPanel" style="display:none">
 <h2>4. Панель адміністратора</h2>
-<h3>Додати нову автозапчастину</h3>
+<h3>Додати нову іграшку</h3>
 <input id="sku" placeholder="Артикул">
-<input id="productName" placeholder="Назва">
+<input id="toyName" placeholder="Назва">
 <input id="category" placeholder="Категорія">
-<input id="manufacturer" placeholder="Виробник">
-<input id="compatibleModel" placeholder="Сумісна модель">
+<input id="brand" placeholder="Бренд">
+<input id="recommendedAge" placeholder="Вік від">
 <input id="price" type="number" step="0.01" placeholder="Ціна">
 <input id="stock" type="number" min="0" placeholder="Кількість">
-<button onclick="createProduct()">Додати товар</button>
+<button onclick="createToy()">Додати товар</button>
 <h3>Усі замовлення</h3>
 <button onclick="loadAllOrders()">Оновити замовлення</button>
 <table id="adminOrdersTable"><thead><tr><th>№</th><th>Клієнт</th><th>Товари</th><th>Сума</th><th>Статус</th><th>Дія</th></tr></thead><tbody></tbody></table>
@@ -66,7 +66,7 @@
 
 <script>
 let accessToken = null;
-let products = [];
+let toys = [];
 let cart = [];
 
 async function tryFetchToken() {
@@ -90,59 +90,59 @@ function logout() {
   window.location.href = '/logout';
 }
 
-async function loadProducts() {
-  const res = await fetch('/api/products');
-  products = await res.json();
-  const tbody = document.querySelector('#productsTable tbody');
+async function loadToys() {
+  const res = await fetch('/api/toys');
+  toys = await res.json();
+  const tbody = document.querySelector('#toysTable tbody');
   tbody.innerHTML = '';
-  products.forEach(p => {
+  toys.forEach(toy => {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${p.id}</td><td>${p.name}</td><td>$${p.price}</td><td>${p.stock}</td>
-      <td><input type="number" id="qty-${p.id}" value="1" min="1"></td>
-      <td><button onclick="addToCart(${p.id})">До кошика</button></td>
+      <td>${toy.id}</td><td>${toy.name}</td><td>$${toy.price}</td><td>${toy.stock}</td>
+      <td><input type="number" id="qty-${toy.id}" value="1" min="1"></td>
+      <td><button onclick="addToCart(${toy.id})">До кошика</button></td>
     `;
     tbody.appendChild(row);
   });
-  show('Завантажено товарів: ' + products.length);
+  show('Завантажено товарів: ' + toys.length);
 }
 
-function addToCart(productId) {
-  const qtyInput = document.getElementById('qty-' + productId);
+function addToCart(toyId) {
+  const qtyInput = document.getElementById('qty-' + toyId);
   const quantity = Number(qtyInput.value);
   if (!quantity || quantity < 1) return;
 
-  const product = products.find(p => p.id === productId);
-  const existing = cart.find(c => c.productId === productId);
+  const toy = toys.find(item => item.id === toyId);
+  const existing = cart.find(c => c.toyId === toyId);
   if (existing) {
     existing.quantity += quantity;
   } else {
-    cart.push({ productId, name: product ? product.name : ('#' + productId), quantity });
+    cart.push({ toyId, name: toy ? toy.name : ('#' + toyId), quantity });
   }
   renderCart();
 }
 
-function removeFromCart(productId) {
-  cart = cart.filter(c => c.productId !== productId);
+function removeFromCart(toyId) {
+  cart = cart.filter(c => c.toyId !== toyId);
   renderCart();
 }
 
 function clearCart() { cart = []; renderCart(); show('Кошик очищено.'); }
 
-async function createProduct() {
-  const body = { sku: sku.value, name: productName.value, category: category.value,
-    manufacturer: manufacturer.value, compatibleModel: compatibleModel.value,
+async function createToy() {
+  const body = { sku: sku.value, name: toyName.value, category: category.value,
+    brand: brand.value, recommendedAge: recommendedAge.value,
     price: Number(price.value), stock: Number(stock.value) };
-  const res = await fetch('/api/products', { method:'POST', headers:{'Authorization':'Bearer '+accessToken,'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  const res = await fetch('/api/toys', { method:'POST', headers:{'Authorization':'Bearer '+accessToken,'Content-Type':'application/json'}, body:JSON.stringify(body) });
   show(res.ok ? 'Товар додано.' : 'Не вдалося додати товар: ' + await res.text());
-  if (res.ok) loadProducts();
+  if (res.ok) loadToys();
 }
 
 async function loadAllOrders() {
   const res = await fetch('/api/orders', {headers:{'Authorization':'Bearer '+accessToken}});
   if (!res.ok) { show('Потрібні права адміністратора.'); return; }
   const orders = await res.json();
-  document.querySelector('#adminOrdersTable tbody').innerHTML = orders.map(o => `<tr><td>${o.id}</td><td>${o.customerUsername || ''}</td><td>${(o.items||[]).map(i=>i.productName+' x'+i.quantity).join(', ')}</td><td>$${o.totalPrice}</td><td>${o.status}</td><td><select onchange="changeStatus(${o.id}, this.value)"><option>CONFIRMED</option><option>IN_PROCESS</option><option>DELIVERY</option><option>COMPLETED</option><option>DECLINED</option></select></td></tr>`).join('');
+  document.querySelector('#adminOrdersTable tbody').innerHTML = orders.map(o => `<tr><td>${o.id}</td><td>${o.customerUsername || ''}</td><td>${(o.items||[]).map(i=>i.toyName+' x'+i.quantity).join(', ')}</td><td>$${o.totalPrice}</td><td>${o.status}</td><td><select onchange="changeStatus(${o.id}, this.value)"><option>CONFIRMED</option><option>IN_PROCESS</option><option>DELIVERY</option><option>COMPLETED</option><option>DECLINED</option></select></td></tr>`).join('');
 }
 
 async function changeStatus(id, status) {
@@ -161,7 +161,7 @@ function renderCart() {
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${c.name}</td><td>${c.quantity}</td>
-      <td><button onclick="removeFromCart(${c.productId})">Видалити</button></td>
+      <td><button onclick="removeFromCart(${c.toyId})">Видалити</button></td>
     `;
     tbody.appendChild(row);
   });
@@ -178,7 +178,7 @@ async function placeOrder() {
   }
 
   const body = {
-    items: cart.map(c => ({ productId: c.productId, quantity: c.quantity }))
+    items: cart.map(c => ({ toyId: c.toyId, quantity: c.quantity }))
   };
 
   const res = await fetch('/api/orders', {
@@ -198,7 +198,7 @@ async function placeOrder() {
   if (res.ok) {
     cart = [];
     renderCart();
-    loadProducts();
+    loadToys();
   }
 }
 
@@ -215,7 +215,7 @@ async function loadMyOrders() {
   tbody.innerHTML = '';
   orders.forEach(o => {
     const itemsSummary = (o.items || [])
-      .map(i => `${i.productName} x${i.quantity}`)
+      .map(i => `${i.toyName} x${i.quantity}`)
       .join(', ');
     const row = document.createElement('tr');
     row.innerHTML = `

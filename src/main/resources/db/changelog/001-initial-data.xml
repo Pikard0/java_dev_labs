@@ -135,4 +135,59 @@
         <update tableName="products"><column name="sku" value="FLT-AIR-003"/><column name="name" value="Повітряний фільтр"/><column name="category" value="Фільтри"/><column name="manufacturer" value="Bosch"/><column name="compatible_model" value="Toyota Corolla"/><where>id=3</where></update>
         <update tableName="products"><column name="sku" value="BAT-12V-060"/><column name="name" value="Автомобільний акумулятор 60 Ah"/><column name="category" value="Електрика"/><column name="manufacturer" value="Varta"/><column name="compatible_model" value="Легкові автомобілі"/><where>id=4</where></update>
     </changeSet>
+
+    <changeSet id="006-convert-products-to-toys" author="course">
+        <dropForeignKeyConstraint
+                baseTableName="order_items"
+                constraintName="fk_order_items_product"/>
+        <dropIndex indexName="idx_products_category" tableName="products"/>
+
+        <renameTable oldTableName="products" newTableName="toys"/>
+        <renameColumn tableName="toys" oldColumnName="manufacturer" newColumnName="brand" columnDataType="VARCHAR(128)"/>
+        <renameColumn tableName="toys" oldColumnName="compatible_model" newColumnName="recommended_age" columnDataType="VARCHAR(255)"/>
+        <renameColumn tableName="order_items" oldColumnName="product_id" newColumnName="toy_id" columnDataType="INT"/>
+
+        <addForeignKeyConstraint
+                baseTableName="order_items"
+                baseColumnNames="toy_id"
+                constraintName="fk_order_items_toy"
+                referencedTableName="toys"
+                referencedColumnNames="id"/>
+        <createIndex indexName="idx_toys_category" tableName="toys">
+            <column name="category"/>
+        </createIndex>
+
+        <update tableName="toys">
+            <column name="sku" value="BLK-SET-001"/>
+            <column name="name" value="Набір дерев'яних кубиків"/>
+            <column name="category" value="Конструктори"/>
+            <column name="brand" value="LEGO"/>
+            <column name="recommended_age" value="6+"/>
+            <where>id=1</where>
+        </update>
+        <update tableName="toys">
+            <column name="sku" value="DOL-FASHION-002"/>
+            <column name="name" value="Лялька для сюжетних ігор"/>
+            <column name="category" value="Ляльки"/>
+            <column name="brand" value="Mattel"/>
+            <column name="recommended_age" value="3+"/>
+            <where>id=2</where>
+        </update>
+        <update tableName="toys">
+            <column name="sku" value="PUZ-ANIMALS-003"/>
+            <column name="name" value="Пазл із тваринами"/>
+            <column name="category" value="Пазли"/>
+            <column name="brand" value="Ravensburger"/>
+            <column name="recommended_age" value="5+"/>
+            <where>id=3</where>
+        </update>
+        <update tableName="toys">
+            <column name="sku" value="PLU-BEAR-004"/>
+            <column name="name" value="Плюшевий ведмедик"/>
+            <column name="category" value="М'які іграшки"/>
+            <column name="brand" value="Aurora"/>
+            <column name="recommended_age" value="0+"/>
+            <where>id=4</where>
+        </update>
+    </changeSet>
 </databaseChangeLog>
