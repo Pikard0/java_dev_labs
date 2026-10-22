@@ -1,5 +1,6 @@
 package com.java.toystore.controller;
 
+import com.java.toystore.async.OrderFulfillmentPreview;
 import com.java.toystore.domain.dto.OrderResponse;
 import com.java.toystore.domain.dto.PlaceOrderRequest;
 import com.java.toystore.security.CurrentUser;
@@ -10,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -63,5 +65,15 @@ class OrderControllerTest {
         when(orderService.getOrder(1, "admin-user", true)).thenReturn(expected);
 
         assertThat(controller().getOrder(1, user)).isSameAs(expected);
+    }
+
+    @Test
+    void getFulfillmentPreview_delegatesToService() {
+        CurrentUser user = user("alice", false);
+        OrderFulfillmentPreview expected = new OrderFulfillmentPreview(
+                1, "order-1.pdf", LocalDate.now().plusDays(3), true, "Fulfillment details are ready");
+        when(orderService.getFulfillmentPreview(1, "alice", false)).thenReturn(expected);
+
+        assertThat(controller().getFulfillmentPreview(1, user)).isSameAs(expected);
     }
 }

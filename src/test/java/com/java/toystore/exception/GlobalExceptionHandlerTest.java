@@ -3,6 +3,7 @@ package com.java.toystore.exception;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.security.access.AccessDeniedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,5 +64,15 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getMessage())
                 .contains("requested 5")
                 .contains("available 2");
+    }
+
+    @Test
+    void handlesTaskRejectedException_asServiceUnavailable() {
+        ResponseEntity<ApplicationErrorResponse> response =
+                handler.handle(new TaskRejectedException("executor queue is full"));
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertThat(response.getBody().getMessage()).contains("Please try again later");
     }
 }

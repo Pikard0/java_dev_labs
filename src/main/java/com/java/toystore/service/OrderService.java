@@ -1,5 +1,9 @@
 package com.java.toystore.service;
 
+import com.java.toystore.async.OrderFulfillmentPreview;
+import com.java.toystore.async.OrderFulfillmentService;
+import com.java.toystore.async.OrderNotificationService;
+import com.java.toystore.configuration.AsyncTaskProperties;
 import com.java.toystore.domain.dto.OrderItemRequest;
 import com.java.toystore.domain.dto.OrderResponse;
 import com.java.toystore.domain.dto.PlaceOrderRequest;
@@ -23,6 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Service
@@ -32,6 +39,9 @@ public class OrderService {
     private final ToyRepository toyRepository;
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final OrderNotificationService orderNotificationService;
+    private final OrderFulfillmentService orderFulfillmentService;
+    private final AsyncTaskProperties asyncTaskProperties;
 
     @Transactional
     public OrderResponse placeOrder(String customerUsername, PlaceOrderRequest request) {
@@ -66,7 +76,9 @@ public class OrderService {
 
         order.setStatus(OrderStatus.CONFIRMED);
 
-        return orderMapper.toResponse(orderRepository.save(order));
+        OrderResponse response = orderMapper.toResponse(orderRepository.save(order));
+        orderNotificationService.sendOrderConfirmation(customerUsername, response);
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -86,6 +98,34 @@ public class OrderService {
         }
 
         return orderMapper.toResponse(order);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderFulfillmentPreview getFulfillmentPreview(Integer orderId, String requestingUsername, boolean isAdmin) {
+        OrderResponse order = getOrder(orderId, requestingUsername, isAdmin);
+
+        try {
+            return orderFulfillmentService.buildPreview(order)
+                    .get(asyncTaskProperties.getResultTimeoutMillis(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException exception) {
+            log.warn("Timed out while waiting for fulfillment details of order {}", orderId);
+            return OrderFulfillmentPreview.unavailable(
+                    orderId,
+                    "Fulfillment details are taking too long. Please try again later."
+            );
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            return OrderFulfillmentPreview.unavailable(
+                    orderId,
+                    "Fulfillment details were interrupted. Please try again later."
+            );
+        } catch (ExecutionException exception) {
+            log.warn("Could not load fulfillment details for order {}", orderId, exception);
+            return OrderFulfillmentPreview.unavailable(
+                    orderId,
+                    "Fulfillment details are temporarily unavailable. Please try again later."
+            );
+        }
     }
 
     @Transactional(readOnly = true)

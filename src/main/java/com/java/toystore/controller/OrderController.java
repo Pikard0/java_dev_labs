@@ -1,5 +1,6 @@
 package com.java.toystore.controller;
 
+import com.java.toystore.async.OrderFulfillmentPreview;
 import com.java.toystore.domain.dto.OrderResponse;
 import com.java.toystore.domain.dto.PlaceOrderRequest;
 import com.java.toystore.domain.enums.OrderStatus;
@@ -37,6 +38,12 @@ public class OrderController {
     @GetMapping("/{id}")
     public OrderResponse getOrder(@PathVariable Integer id, @CurrentUserParam CurrentUser user) {
         return orderService.getOrder(id, user.username(), user.hasRole("ADMIN"));
+    }
+
+    @GetMapping("/{id}/fulfillment-preview")
+    public OrderFulfillmentPreview getFulfillmentPreview(@PathVariable Integer id,
+                                                         @CurrentUserParam CurrentUser user) {
+        return orderService.getFulfillmentPreview(id, user.username(), user.hasRole("ADMIN"));
     }
 
     @GetMapping

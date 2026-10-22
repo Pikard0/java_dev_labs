@@ -1,5 +1,9 @@
 package com.java.toystore.service;
 
+import com.java.toystore.async.OrderFulfillmentPreview;
+import com.java.toystore.async.OrderFulfillmentService;
+import com.java.toystore.async.OrderNotificationService;
+import com.java.toystore.configuration.AsyncTaskProperties;
 import com.java.toystore.domain.dto.OrderItemRequest;
 import com.java.toystore.domain.dto.OrderResponse;
 import com.java.toystore.domain.dto.PlaceOrderRequest;
@@ -25,6 +29,7 @@ import org.springframework.security.access.AccessDeniedException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -42,6 +47,15 @@ class OrderServiceTest {
 
     @Mock
     private OrderMapper orderMapper;
+
+    @Mock
+    private OrderNotificationService orderNotificationService;
+
+    @Mock
+    private OrderFulfillmentService orderFulfillmentService;
+
+    @Mock
+    private AsyncTaskProperties asyncTaskProperties;
     
     @InjectMocks
     private OrderService orderService;
@@ -79,6 +93,7 @@ class OrderServiceTest {
         assertThat(saved.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
         assertThat(saved.getCustomerUsername()).isEqualTo(USERNAME);
         assertThat(saved.getItems()).hasSize(1);
+        verify(orderNotificationService).sendOrderConfirmation(eq(USERNAME), any(OrderResponse.class));
     }
 
     @ParameterizedTest
@@ -249,5 +264,22 @@ class OrderServiceTest {
 
         assertThatThrownBy(() -> orderService.getOrder(404, USERNAME, false))
                 .isInstanceOf(OrderNotFoundException.class);
+    }
+
+    @Test
+    void getFulfillmentPreview_neverCompletingFuture_returnsTimeoutFallback() {
+        Order order = new Order();
+        order.setCustomerUsername(USERNAME);
+        OrderResponse response = new OrderResponse();
+        response.setId(1);
+        when(orderRepository.findById(1)).thenReturn(Optional.of(order));
+        when(orderMapper.toResponse(order)).thenReturn(response);
+        when(orderFulfillmentService.buildPreview(response)).thenReturn(new CompletableFuture<>());
+        when(asyncTaskProperties.getResultTimeoutMillis()).thenReturn(10L);
+
+        OrderFulfillmentPreview preview = orderService.getFulfillmentPreview(1, USERNAME, false);
+
+        assertThat(preview.available()).isFalse();
+        assertThat(preview.message()).contains("taking too long");
     }
 }
