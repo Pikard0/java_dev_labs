@@ -50,6 +50,22 @@ spring:
     enabled: true
     change-log: classpath:db/changelog/changelog-master.xml
 
+  quartz:
+    job-store-type: jdbc
+    overwrite-existing-jobs: false
+    jdbc:
+      initialize-schema: never
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: ToyStoreScheduler
+          jobStore:
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            isClustered: false
+          threadPool:
+            threadCount: 3
+
 toy-store:
   async:
     core-pool-size: 2
