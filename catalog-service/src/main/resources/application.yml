@@ -1,0 +1,10 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: toy-catalog-service
+
+logging:
+  file:
+    name: logs/toy-catalog-service.log
