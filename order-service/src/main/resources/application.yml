@@ -9,6 +9,12 @@ spring:
   application:
     name: toy-store-service
 
+  rabbitmq:
+    host: ${TOY_STORE_RABBITMQ_HOST:localhost}
+    port: ${TOY_STORE_RABBITMQ_PORT:5672}
+    username: ${TOY_STORE_RABBITMQ_USERNAME:guest}
+    password: ${TOY_STORE_RABBITMQ_PASSWORD:guest}
+
   security:
     oauth2:
       resourceserver:
@@ -67,6 +73,10 @@ spring:
             threadCount: 3
 
 toy-store:
+  messaging:
+    exchange: ${TOY_STORE_MESSAGING_EXCHANGE:toy-store.order-events}
+    order-placed-routing-key: ${TOY_STORE_ORDER_PLACED_ROUTING_KEY:order.placed}
+
   async:
     core-pool-size: 2
     max-pool-size: 4

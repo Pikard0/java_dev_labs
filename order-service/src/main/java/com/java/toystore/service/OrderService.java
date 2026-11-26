@@ -16,17 +16,20 @@ import com.java.toystore.domain.model.Toy;
 import com.java.toystore.exception.InsufficientStockException;
 import com.java.toystore.exception.OrderNotFoundException;
 import com.java.toystore.exception.ToyNotFoundException;
+import com.java.toystore.messaging.OrderPlacedEvent;
 import com.java.toystore.repository.OrderRepository;
 import com.java.toystore.repository.ToyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -42,6 +45,7 @@ public class OrderService {
     private final OrderNotificationService orderNotificationService;
     private final OrderFulfillmentService orderFulfillmentService;
     private final AsyncTaskProperties asyncTaskProperties;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public OrderResponse placeOrder(String customerUsername, PlaceOrderRequest request) {
@@ -76,7 +80,15 @@ public class OrderService {
 
         order.setStatus(OrderStatus.CONFIRMED);
 
-        OrderResponse response = orderMapper.toResponse(orderRepository.save(order));
+        Order savedOrder = orderRepository.save(order);
+        OrderResponse response = orderMapper.toResponse(savedOrder);
+        applicationEventPublisher.publishEvent(new OrderPlacedEvent(
+                UUID.randomUUID(),
+                savedOrder.getId(),
+                savedOrder.getCustomerUsername(),
+                savedOrder.getTotalPrice(),
+                savedOrder.getCreatedAt()
+        ));
         orderNotificationService.sendOrderConfirmation(customerUsername, response);
         return response;
     }

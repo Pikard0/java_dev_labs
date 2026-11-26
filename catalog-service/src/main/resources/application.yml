@@ -5,6 +5,18 @@ spring:
   application:
     name: toy-catalog-service
 
+  rabbitmq:
+    host: ${TOY_STORE_RABBITMQ_HOST:localhost}
+    port: ${TOY_STORE_RABBITMQ_PORT:5672}
+    username: ${TOY_STORE_RABBITMQ_USERNAME:guest}
+    password: ${TOY_STORE_RABBITMQ_PASSWORD:guest}
+
+toy-store:
+  messaging:
+    exchange: ${TOY_STORE_MESSAGING_EXCHANGE:toy-store.order-events}
+    order-placed-routing-key: ${TOY_STORE_ORDER_PLACED_ROUTING_KEY:order.placed}
+    order-placed-queue: ${TOY_STORE_ORDER_PLACED_QUEUE:toy-store.catalog.order-placed}
+
 logging:
   file:
     name: logs/toy-catalog-service.log

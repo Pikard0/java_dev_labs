@@ -14,6 +14,7 @@ import com.java.toystore.domain.model.Toy;
 import com.java.toystore.exception.InsufficientStockException;
 import com.java.toystore.exception.OrderNotFoundException;
 import com.java.toystore.exception.ToyNotFoundException;
+import com.java.toystore.messaging.OrderPlacedEvent;
 import com.java.toystore.repository.OrderRepository;
 import com.java.toystore.repository.ToyRepository;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -56,7 +58,10 @@ class OrderServiceTest {
 
     @Mock
     private AsyncTaskProperties asyncTaskProperties;
-    
+
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+
     @InjectMocks
     private OrderService orderService;
 
@@ -93,6 +98,7 @@ class OrderServiceTest {
         assertThat(saved.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
         assertThat(saved.getCustomerUsername()).isEqualTo(USERNAME);
         assertThat(saved.getItems()).hasSize(1);
+        verify(applicationEventPublisher).publishEvent(any(OrderPlacedEvent.class));
         verify(orderNotificationService).sendOrderConfirmation(eq(USERNAME), any(OrderResponse.class));
     }
 
